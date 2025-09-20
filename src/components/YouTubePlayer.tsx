@@ -51,13 +51,13 @@ const YouTubePlayer = forwardRef<YouTubePlayerHandle, Props>(
       height: "1",
       width: "1",
       playerVars: {
-        autoplay: 1, // Enable autoplay
+        autoplay: 0, // Disable autoplay, we'll handle it manually
         controls: 0,
         rel: 0,
         modestbranding: 1,
         playsinline: 1,
         enablejsapi: 1,
-        mute: 0, // Don't start muted
+        mute: 0,
         start: 0,
       },
     };
@@ -78,18 +78,7 @@ const YouTubePlayer = forwardRef<YouTubePlayerHandle, Props>(
           onReady={(e) => {
             playerRef.current = e.target;
             isReadyRef.current = true;
-            console.log('YouTube player fully ready, starting playback');
-            // More aggressive auto-start for mobile
-            setTimeout(() => {
-              e.target.playVideo();
-              // Double-check for mobile
-              setTimeout(() => {
-                if (e.target.getPlayerState() !== 1) {
-                  console.log('Retrying playback for mobile...');
-                  e.target.playVideo();
-                }
-              }, 1000);
-            }, 200);
+            console.log('YouTube player ready - waiting for manual play trigger');
             onReady?.(e);
           }}
           onStateChange={(e) => {

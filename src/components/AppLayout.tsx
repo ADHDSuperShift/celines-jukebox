@@ -78,13 +78,19 @@ const AppLayout: React.FC = () => {
     playSong(song);
     playYouTubeSong(song);
     
-    // For mobile: Try to play after a short delay to ensure YouTube player is ready
+    // For mobile: Automatically trigger pause/play sequence to overcome autoplay restrictions
     setTimeout(() => {
       if (youtubePlayerRef.current) {
-        youtubePlayerRef.current.play();
-        console.log('Triggered manual play for mobile compatibility');
+        console.log('Auto-triggering pause/play sequence for mobile...');
+        // First pause to ensure we have control
+        youtubePlayerRef.current.pause();
+        setTimeout(() => {
+          // Then play - this usually works on mobile after user interaction
+          youtubePlayerRef.current.play();
+          console.log('Completed auto pause/play sequence');
+        }, 300);
       }
-    }, 1500);
+    }, 1000);
     
     // If connected, also cast the song
     if (isConnected && song.youtubeId) {
