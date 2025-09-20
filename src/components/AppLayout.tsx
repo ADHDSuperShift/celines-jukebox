@@ -42,7 +42,11 @@ const AppLayout: React.FC = () => {
       }
     } else {
       // Control YouTube player
-      youtubePlayerRef.current?.play();
+      if (playerState.isPlaying) {
+        youtubePlayerRef.current?.pause();
+      } else {
+        youtubePlayerRef.current?.play();
+      }
     }
     togglePlay();
   };
