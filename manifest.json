@@ -2,7 +2,7 @@
   "name": "Celine's Jukebox",
   "short_name": "Jukebox",
   "description": "A retro jukebox experience with vinyl records and classic music",
-  "start_url": "/",
+  "start_url": "/celines-jukebox/",
   "display": "standalone",
   "background_color": "#1a1a2e",
   "theme_color": "#ec4899",

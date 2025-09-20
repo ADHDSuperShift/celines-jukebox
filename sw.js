@@ -1,9 +1,8 @@
 const CACHE_NAME = 'celines-jukebox-v1';
 const urlsToCache = [
-  '/',
-  '/static/js/bundle.js',
-  '/static/css/main.css',
-  '/manifest.json'
+  '/celines-jukebox/',
+  '/celines-jukebox/assets/',
+  '/celines-jukebox/manifest.json'
 ];
 
 self.addEventListener('install', (event) => {
