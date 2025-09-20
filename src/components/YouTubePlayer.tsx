@@ -1,4 +1,4 @@
-import { forwardRef, useImperativeHandle, useRef } from "react";
+import { forwardRef, useImperativeHandle, useRef, useCallback } from "react";
 import YouTube, { YouTubeEvent } from "react-youtube";
 
 export interface YouTubePlayerHandle {
@@ -12,14 +12,36 @@ interface Props {
   videoId: string;
   onEnded?: () => void;
   onReady?: (e: YouTubeEvent) => void;
+  onPlay?: () => void;
 }
 
 const YouTubePlayer = forwardRef<YouTubePlayerHandle, Props>(
-  ({ videoId, onEnded, onReady }, ref) => {
+  ({ videoId, onEnded, onReady, onPlay }, ref) => {
     const playerRef = useRef<any>(null);
+    const isReadyRef = useRef(false);
+
+    const ensurePlay = useCallback(() => {
+      if (playerRef.current && isReadyRef.current) {
+        try {
+          const playerState = playerRef.current.getPlayerState();
+          if (playerState !== 1) { // Not playing
+            playerRef.current.playVideo();
+            console.log('Ensured playback started');
+          }
+        } catch (error) {
+          console.warn('Ensure play failed:', error);
+        }
+      }
+    }, []);
 
     useImperativeHandle(ref, () => ({
-      play: () => playerRef.current?.playVideo(),
+      play: () => {
+        if (playerRef.current && isReadyRef.current) {
+          playerRef.current.playVideo();
+          // Double-check after a short delay
+          setTimeout(ensurePlay, 500);
+        }
+      },
       pause: () => playerRef.current?.pauseVideo(),
       seekTo: (s: number) => playerRef.current?.seekTo(s, true),
       getPlayer: () => playerRef.current || null,
@@ -29,10 +51,12 @@ const YouTubePlayer = forwardRef<YouTubePlayerHandle, Props>(
       height: "1",
       width: "1",
       playerVars: {
-        autoplay: 1,
+        autoplay: 0,
         controls: 0,
         rel: 0,
         modestbranding: 1,
+        playsinline: 1,
+        enablejsapi: 1,
       },
     };
 
@@ -51,10 +75,13 @@ const YouTubePlayer = forwardRef<YouTubePlayerHandle, Props>(
           opts={opts}
           onReady={(e) => {
             playerRef.current = e.target;
+            isReadyRef.current = true;
+            console.log('YouTube player fully ready');
             onReady?.(e);
           }}
           onStateChange={(e) => {
             if (e.data === 0) onEnded?.(); // ended
+            if (e.data === 1) onPlay?.(); // playing
           }}
         />
       </div>

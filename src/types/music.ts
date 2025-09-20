@@ -3,7 +3,8 @@ export interface Song {
   title: string;
   artist: string;
   album?: string;
-  youtubeId: string;
+  youtubeId?: string; // Keep for fallback
+  spotifyId?: string; // Spotify track ID
   albumCover: string;
   duration?: number;
   addedAt: Date;

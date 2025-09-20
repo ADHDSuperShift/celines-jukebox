@@ -5,9 +5,17 @@ interface JukeboxHeaderProps {
   onAddSong: () => void;
   onCast: () => void;
   isConnected?: boolean;
+  spotifyAuthenticated?: boolean;
+  onSpotifyLogout?: () => void;
 }
 
-const JukeboxHeader: React.FC<JukeboxHeaderProps> = ({ onAddSong, onCast, isConnected = false }) => {
+const JukeboxHeader: React.FC<JukeboxHeaderProps> = ({ 
+  onAddSong, 
+  onCast, 
+  isConnected = false,
+  spotifyAuthenticated = false,
+  onSpotifyLogout
+}) => {
   return (
     <header className="relative overflow-hidden">
       {/* Background image */}
@@ -59,6 +67,15 @@ const JukeboxHeader: React.FC<JukeboxHeaderProps> = ({ onAddSong, onCast, isConn
             <Cast className="w-5 h-5" />
             <span>{isConnected ? 'Connected to TV' : 'Cast to TV'}</span>
           </button>
+
+          {spotifyAuthenticated && onSpotifyLogout && (
+            <button
+              onClick={onSpotifyLogout}
+              className="flex items-center space-x-2 bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-full font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg"
+            >
+              <span>Logout Spotify</span>
+            </button>
+          )}
         </div>
         
         {/* Decorative elements */}

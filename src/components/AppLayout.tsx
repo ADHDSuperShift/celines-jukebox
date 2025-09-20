@@ -1,11 +1,11 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useJukebox } from '@/hooks/useJukebox';
+import { useSpotify } from '@/hooks/useSpotify';
 import { useCast } from '@/hooks/useCast';
 import JukeboxHeader from './JukeboxHeader';
 import NowPlaying from './NowPlaying';
 import VinylGrid from './VinylGrid';
 import AddSongModal from './AddSongModal';
-import YouTubePlayer, { YouTubePlayerHandle } from './YouTubePlayer';
 
 const AppLayout: React.FC = () => {
   const {
@@ -17,8 +17,20 @@ const AppLayout: React.FC = () => {
     addSong
   } = useJukebox();
 
+  const {
+    isAuthenticated,
+    isPlayerReady,
+    currentTrack,
+    isPlaying: spotifyIsPlaying,
+    isInitializing,
+    login,
+    logout,
+    playTrack,
+    pause,
+    resume
+  } = useSpotify();
+
   const [showAddModal, setShowAddModal] = useState(false);
-  const playerRef = useRef<YouTubePlayerHandle>(null);
   const { isConnected, castCurrentSong, playCast, pauseCast } = useCast();
 
   const handleTogglePlay = () => {
@@ -29,28 +41,43 @@ const AppLayout: React.FC = () => {
       } else {
         playCast();
       }
-    } else {
-      // Control local player
-      if (playerState.isPlaying) {
-        playerRef.current?.pause();
+    } else if (isAuthenticated) {
+      // Control Spotify player
+      if (spotifyIsPlaying) {
+        pause();
       } else {
-        playerRef.current?.play();
+        resume();
       }
     }
     togglePlay();
   };
 
   const handlePlaySong = (song: any) => {
-    playSong(song);
+    console.log("Playing song:", song.title);
     
-    if (isConnected) {
-      // Cast to Chromecast
-      castCurrentSong(song.youtubeId, song.title, song.artist, song.albumCover);
+    // Try Spotify first, fallback to YouTube
+    if (isAuthenticated && song.spotifyId) {
+      const startSpotifyPlayback = async () => {
+        playSong(song);
+        try {
+          const success = await playTrack(`spotify:track:${song.spotifyId}`);
+          if (!success) {
+            console.error('Failed to play track on Spotify, falling back to YouTube');
+            // Could fallback to YouTube here
+          }
+        } catch (error) {
+          console.error('Error playing track:', error);
+        }
+      };
+      startSpotifyPlayback();
     } else {
-      // Play locally
-      setTimeout(() => {
-        playerRef.current?.play();
-      }, 200);
+      // Fallback: Alert user to setup Spotify or use YouTube
+      alert('Please login to Spotify first, or YouTube integration coming soon!');
+    }
+    
+    // If connected, also cast the visualization
+    if (isConnected && song.youtubeId) {
+      castCurrentSong(song.youtubeId, song.title, song.artist, song.albumCover);
     }
   };
 
@@ -64,13 +91,14 @@ const AppLayout: React.FC = () => {
       );
       
       if (success) {
-        // Pause local player when casting starts
-        playerRef.current?.pause();
+        // Keep local player running - we're only casting the visualization
+        console.log('Cast visualization started, audio continues locally');
       }
     } else {
       alert('Please select a song first before casting');
     }
   };
+
 
   const handleToggleShuffle = () => {
     // Shuffle functionality would be implemented here
@@ -94,18 +122,18 @@ const AppLayout: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900">
-      {/* Hidden YouTube Player for Audio */}
-      {playerState.currentSong && (
-        <YouTubePlayer
-          ref={playerRef}
-          videoId={playerState.currentSong.youtubeId}
-          onEnded={nextSong}
-          onReady={() => {
-            if (playerState.isPlaying) {
-              setTimeout(() => playerRef.current?.play(), 200);
-            }
-          }}
-        />
+      {/* Spotify Authentication Banner */}
+      {!isAuthenticated && (
+        <div className="bg-green-600 text-white p-4 text-center">
+          <p className="mb-2">Connect to Spotify to play music</p>
+          <button
+            onClick={login}
+            className="bg-green-800 hover:bg-green-700 px-6 py-2 rounded-lg font-semibold transition-colors"
+            disabled={isInitializing}
+          >
+            {isInitializing ? 'Connecting...' : 'Login to Spotify'}
+          </button>
+        </div>
       )}
 
       {/* Header */}
@@ -113,6 +141,8 @@ const AppLayout: React.FC = () => {
         onAddSong={() => setShowAddModal(true)}
         onCast={handleCast}
         isConnected={isConnected}
+        spotifyAuthenticated={isAuthenticated}
+        onSpotifyLogout={logout}
       />
 
       {/* Now Playing Section */}

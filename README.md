@@ -1,6 +1,6 @@
 # 🎵 Celine's Jukebox
 
-A stunning retro jukebox web application built with React, Vite, and Tailwind CSS. Experience the golden age of music with authentic vinyl record aesthetics, smooth animations, and modern web technologies.
+A stunning retro jukebox web application built with React, Vite, and Tailwind CSS. Experience the golden age of music with authentic vinyl record aesthetics, smooth animations, and Spotify integration for high-quality audio playback.
 
 ## ✨ Features
 
@@ -11,14 +11,15 @@ A stunning retro jukebox web application built with React, Vite, and Tailwind CS
 - **Mobile-First**: Responsive design that works beautifully on all devices
 
 ### 🎵 Music Experience
-- **YouTube Integration**: Play any YouTube song with full player controls
+- **Spotify Integration**: High-quality audio playback through Spotify Web Playback SDK
 - **Rich Controls**: Play, pause, skip, shuffle, repeat, and volume control
 - **Now Playing**: Large spinning vinyl display with song information
 - **Queue Management**: Add songs to queue and manage playback history
+- **Premium Experience**: Requires Spotify Premium for seamless playback
 
 ### 📱 Modern Web App
 - **PWA Ready**: Installable as a Progressive Web App
-- **Cast Support**: Ready for Chromecast/AirPlay integration
+- **Cast Support**: Ready for Chromecast/AirPlay integration  
 - **Offline Capable**: Service worker ready for offline functionality
 - **Fast Loading**: Optimized with Vite for lightning-fast development and builds
 
@@ -27,6 +28,7 @@ A stunning retro jukebox web application built with React, Vite, and Tailwind CS
 ### Prerequisites
 - Node.js 18+ 
 - npm or yarn
+- **Spotify Premium Account** (required for audio playback)
 
 ### Installation
 
@@ -41,13 +43,22 @@ A stunning retro jukebox web application built with React, Vite, and Tailwind CS
    npm install
    ```
 
-3. **Start development server**
+3. **Setup Spotify Integration**
+   ```bash
+   # Copy environment template
+   cp .env.example .env
+   
+   # Edit .env and add your Spotify Client ID
+   # See SPOTIFY_SETUP.md for detailed instructions
+   ```
+
+4. **Start development server**
    ```bash
    npm run dev
    ```
 
-4. **Open your browser**
-   Navigate to `http://localhost:5173`
+5. **Open your browser**
+   Navigate to `http://localhost:8080`
 
 ### Build for Production
 
@@ -55,6 +66,16 @@ A stunning retro jukebox web application built with React, Vite, and Tailwind CS
 npm run build
 npm run preview
 ```
+
+### Spotify Setup
+
+For detailed Spotify integration setup, see [SPOTIFY_SETUP.md](./SPOTIFY_SETUP.md)
+
+**Quick Summary:**
+1. Create a Spotify App at [developer.spotify.com](https://developer.spotify.com/dashboard)
+2. Copy your Client ID to `.env` file
+3. Add redirect URIs (localhost for dev, your domain for production)
+4. Users need Spotify Premium to play music
 
 ## 🏗️ Architecture
 
