@@ -20,6 +20,12 @@ export const useSpotify = () => {
     // Check if we have an access token in URL (after OAuth redirect)
     const urlParams = new URLSearchParams(window.location.hash.substring(1));
     const token = urlParams.get('access_token');
+    const error = urlParams.get('error');
+    
+    if (error) {
+      console.error('Spotify OAuth error:', error);
+      return;
+    }
     
     if (token) {
       setAccessToken(token);
@@ -51,13 +57,19 @@ export const useSpotify = () => {
 
   const connectSpotify = () => {
     console.log('Redirect URI being used:', REDIRECT_URI);
+    console.log('Client ID:', CLIENT_ID);
+    
+    // Try a simpler approach with minimal scopes
     const authUrl = `https://accounts.spotify.com/authorize?` +
       `client_id=${CLIENT_ID}&` +
       `response_type=token&` +
       `redirect_uri=${encodeURIComponent(REDIRECT_URI)}&` +
-      `scope=${encodeURIComponent(SCOPES)}`;
+      `scope=${encodeURIComponent('streaming user-read-private')}&` +
+      `show_dialog=true`;
     
     console.log('Full auth URL:', authUrl);
+    
+    // Open in same window
     window.location.href = authUrl;
   };
 
