@@ -1,0 +1,21 @@
+{
+  "name": "Celine's Jukebox",
+  "short_name": "Jukebox",
+  "description": "A retro jukebox experience with vinyl records and classic music",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#1a1a2e",
+  "theme_color": "#ec4899",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/placeholder.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["music", "entertainment"],
+  "lang": "en-US",
+  "dir": "ltr"
+}
