@@ -155,6 +155,28 @@ const AppLayout: React.FC = () => {
     console.log('Previous song');
   };
 
+  useEffect(() => {
+    if (!playerState.currentSong) return;
+    const song = playerState.currentSong;
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
+    // Reset readiness for new song
+    setPlayerReady(false);
+
+    if (isMobile) {
+      // Show overlay and wait for onReady -> enable button
+      setPendingSong(song);
+      setShowTapToPlay(true);
+    } else {
+      // Desktop: try to play when player becomes ready; we also try a few times
+      const tryPlay = () => youtubePlayerRef.current?.play();
+      // kick a few attempts in case init lags
+      setTimeout(tryPlay, 200);
+      setTimeout(tryPlay, 700);
+      setTimeout(tryPlay, 1500);
+    }
+  }, [playerState.currentSong]);
+
   return (
     <div 
       className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900"
