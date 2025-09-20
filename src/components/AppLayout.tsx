@@ -51,8 +51,19 @@ const AppLayout: React.FC = () => {
     togglePlay();
   };
 
-  const enableAudio = () => {
+  const enableAudio = async () => {
     setUserInteracted(true);
+    
+    // Try to unlock audio context for mobile
+    try {
+      const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+      if (audioContext.state === 'suspended') {
+        await audioContext.resume();
+        console.log('Audio context unlocked for mobile');
+      }
+    } catch (error) {
+      console.log('Audio context unlock not needed or failed:', error);
+    }
   };
 
   const handlePlaySong = (song: any) => {
@@ -66,6 +77,14 @@ const AppLayout: React.FC = () => {
     // Set the song in jukebox state
     playSong(song);
     playYouTubeSong(song);
+    
+    // For mobile: Try to play after a short delay to ensure YouTube player is ready
+    setTimeout(() => {
+      if (youtubePlayerRef.current) {
+        youtubePlayerRef.current.play();
+        console.log('Triggered manual play for mobile compatibility');
+      }
+    }, 1500);
     
     // If connected, also cast the song
     if (isConnected && song.youtubeId) {
