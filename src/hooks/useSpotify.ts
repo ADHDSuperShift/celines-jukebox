@@ -10,8 +10,11 @@ export const useSpotify = () => {
 
   // Spotify app credentials (you'll need to register your app)
   const CLIENT_ID = import.meta.env.VITE_SPOTIFY_CLIENT_ID || 'your_spotify_client_id';
-  const REDIRECT_URI = 'https://adhdshupershift.github.io/celines-jukebox/';
+  const REDIRECT_URI = window.location.origin + window.location.pathname;
   const SCOPES = 'streaming user-read-email user-read-private user-read-playback-state user-modify-playback-state';
+
+  console.log('Current location:', window.location.href);
+  console.log('Redirect URI will be:', REDIRECT_URI);
 
   useEffect(() => {
     // Check if we have an access token in URL (after OAuth redirect)
@@ -47,12 +50,14 @@ export const useSpotify = () => {
   };
 
   const connectSpotify = () => {
+    console.log('Redirect URI being used:', REDIRECT_URI);
     const authUrl = `https://accounts.spotify.com/authorize?` +
       `client_id=${CLIENT_ID}&` +
       `response_type=token&` +
       `redirect_uri=${encodeURIComponent(REDIRECT_URI)}&` +
       `scope=${encodeURIComponent(SCOPES)}`;
     
+    console.log('Full auth URL:', authUrl);
     window.location.href = authUrl;
   };
 
