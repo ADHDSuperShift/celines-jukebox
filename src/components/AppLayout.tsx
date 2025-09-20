@@ -31,6 +31,8 @@ const AppLayout: React.FC = () => {
   const { isConnected, castCurrentSong, playCast, pauseCast } = useCast();
   const youtubePlayerRef = useRef<YouTubePlayerHandle>(null);
   const [userInteracted, setUserInteracted] = useState(false);
+  const [showTapToPlay, setShowTapToPlay] = useState(false);
+  const [pendingSong, setPendingSong] = useState<any>(null);
 
   const handleTogglePlay = () => {
     if (isConnected) {
@@ -74,27 +76,34 @@ const AppLayout: React.FC = () => {
       return;
     }
     
-    // Set the song in jukebox state
+    // On mobile, show tap to play overlay instead of auto-playing
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    
+    if (isMobile) {
+      setPendingSong(song);
+      setShowTapToPlay(true);
+      // Set the song in jukebox state but don't play yet
+      playSong(song);
+      playYouTubeSong(song);
+      return;
+    }
+    
+    // Desktop: play immediately
     playSong(song);
     playYouTubeSong(song);
-    
-    // For mobile: Automatically trigger pause/play sequence to overcome autoplay restrictions
-    setTimeout(() => {
-      if (youtubePlayerRef.current) {
-        console.log('Auto-triggering pause/play sequence for mobile...');
-        // First pause to ensure we have control
-        youtubePlayerRef.current.pause();
-        setTimeout(() => {
-          // Then play - this usually works on mobile after user interaction
-          youtubePlayerRef.current.play();
-          console.log('Completed auto pause/play sequence');
-        }, 300);
-      }
-    }, 1000);
     
     // If connected, also cast the song
     if (isConnected && song.youtubeId) {
       castCurrentSong(song.youtubeId, song.title, song.artist, song.albumCover);
+    }
+  };
+
+  const handleTapToPlay = () => {
+    if (pendingSong && youtubePlayerRef.current) {
+      console.log('User tapped to play:', pendingSong.title);
+      youtubePlayerRef.current.play();
+      setShowTapToPlay(false);
+      setPendingSong(null);
     }
   };
 
@@ -163,6 +172,25 @@ const AppLayout: React.FC = () => {
           onReady={() => console.log('YouTube player ready')}
           onPlay={() => console.log('YouTube playing')}
         />
+      )}
+
+      {/* Tap to Play Overlay for Mobile */}
+      {showTapToPlay && (
+        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-8 text-center max-w-sm mx-4">
+            <div className="text-6xl mb-4">🎵</div>
+            <h2 className="text-2xl font-bold text-gray-800 mb-2">Tap to Play</h2>
+            <p className="text-gray-600 mb-6">
+              {pendingSong?.title} by {pendingSong?.artist}
+            </p>
+            <button
+              onClick={handleTapToPlay}
+              className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-lg text-lg transition-colors"
+            >
+              ▶️ Play Now
+            </button>
+          </div>
+        </div>
       )}
 
       {/* Now Playing Section */}
