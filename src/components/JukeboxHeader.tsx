@@ -4,9 +4,10 @@ import { Music, Plus, Cast } from 'lucide-react';
 interface JukeboxHeaderProps {
   onAddSong: () => void;
   onCast: () => void;
+  isConnected?: boolean;
 }
 
-const JukeboxHeader: React.FC<JukeboxHeaderProps> = ({ onAddSong, onCast }) => {
+const JukeboxHeader: React.FC<JukeboxHeaderProps> = ({ onAddSong, onCast, isConnected = false }) => {
   return (
     <header className="relative overflow-hidden">
       {/* Background image */}
@@ -33,7 +34,7 @@ const JukeboxHeader: React.FC<JukeboxHeaderProps> = ({ onAddSong, onCast }) => {
         
         {/* Subtitle */}
         <p className="text-xl text-gray-300 mb-8 max-w-2xl mx-auto">
-          Step into the golden age of music with our retro jukebox experience. 
+          Step into the golden age of music with your retro jukebox experience. 
           Select your favorite vinyl records and let the magic begin!
         </p>
         
@@ -49,10 +50,14 @@ const JukeboxHeader: React.FC<JukeboxHeaderProps> = ({ onAddSong, onCast }) => {
           
           <button
             onClick={onCast}
-            className="flex items-center space-x-2 bg-gray-800 hover:bg-gray-700 text-white px-6 py-3 rounded-full font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg"
+            className={`flex items-center space-x-2 px-6 py-3 rounded-full font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg ${
+              isConnected 
+                ? 'bg-green-600 hover:bg-green-700 text-white' 
+                : 'bg-gray-800 hover:bg-gray-700 text-white'
+            }`}
           >
             <Cast className="w-5 h-5" />
-            <span>Cast to TV</span>
+            <span>{isConnected ? 'Connected to TV' : 'Cast to TV'}</span>
           </button>
         </div>
         

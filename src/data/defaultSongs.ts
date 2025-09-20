@@ -90,5 +90,15 @@ export const defaultSongs: Song[] = [
     albumCover: 'https://d64gsuwffb70l.cloudfront.net/68ce46f09438f395da86302f_1758349094160_a41a447a.webp',
     duration: 219,
     addedAt: new Date('2024-01-02')
+  },
+  {
+    id: '10',
+    title: 'Never Gonna Give You Up',
+    artist: 'Rick Astley',
+    album: 'Whenever You Need Somebody',
+    youtubeId: 'dQw4w9WgXcQ',
+    albumCover: 'https://img.youtube.com/vi/dQw4w9WgXcQ/hqdefault.jpg',
+    duration: 213,
+    addedAt: new Date('2024-01-03')
   }
 ];

@@ -1,105 +1,66 @@
-import React, { useEffect, useRef } from 'react';
-import { Song } from '@/types/music';
+import { forwardRef, useImperativeHandle, useRef } from "react";
+import YouTube, { YouTubeEvent } from "react-youtube";
 
-interface YouTubePlayerProps {
-  song: Song | null;
-  isPlaying: boolean;
-  volume: number;
-  onReady?: () => void;
-  onStateChange?: (state: number) => void;
-  onError?: (error: number) => void;
+export interface YouTubePlayerHandle {
+  play: () => void;
+  pause: () => void;
+  seekTo: (s: number) => void;
+  getPlayer: () => any;
 }
 
-declare global {
-  interface Window {
-    YT: any;
-    onYouTubeIframeAPIReady: () => void;
+interface Props {
+  videoId: string;
+  onEnded?: () => void;
+  onReady?: (e: YouTubeEvent) => void;
+}
+
+const YouTubePlayer = forwardRef<YouTubePlayerHandle, Props>(
+  ({ videoId, onEnded, onReady }, ref) => {
+    const playerRef = useRef<any>(null);
+
+    useImperativeHandle(ref, () => ({
+      play: () => playerRef.current?.playVideo(),
+      pause: () => playerRef.current?.pauseVideo(),
+      seekTo: (s: number) => playerRef.current?.seekTo(s, true),
+      getPlayer: () => playerRef.current || null,
+    }));
+
+    const opts = {
+      height: "1",
+      width: "1",
+      playerVars: {
+        autoplay: 1,
+        controls: 0,
+        rel: 0,
+        modestbranding: 1,
+      },
+    };
+
+    return (
+      <div style={{ 
+        position: "absolute", 
+        left: "-9999px", 
+        top: "-9999px",
+        width: "1px",
+        height: "1px",
+        overflow: "hidden",
+        visibility: "hidden"
+      }}>
+        <YouTube
+          videoId={videoId}
+          opts={opts}
+          onReady={(e) => {
+            playerRef.current = e.target;
+            onReady?.(e);
+          }}
+          onStateChange={(e) => {
+            if (e.data === 0) onEnded?.(); // ended
+          }}
+        />
+      </div>
+    );
   }
-}
-
-const YouTubePlayer: React.FC<YouTubePlayerProps> = ({
-  song,
-  isPlaying,
-  volume,
-  onReady,
-  onStateChange,
-  onError
-}) => {
-  const playerRef = useRef<any>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    // Load YouTube API if not already loaded
-    if (!window.YT) {
-      const tag = document.createElement('script');
-      tag.src = 'https://www.youtube.com/iframe_api';
-      const firstScriptTag = document.getElementsByTagName('script')[0];
-      firstScriptTag.parentNode?.insertBefore(tag, firstScriptTag);
-
-      window.onYouTubeIframeAPIReady = () => {
-        initializePlayer();
-      };
-    } else {
-      initializePlayer();
-    }
-  }, []);
-
-  const initializePlayer = () => {
-    if (containerRef.current && !playerRef.current) {
-      playerRef.current = new window.YT.Player(containerRef.current, {
-        height: '0',
-        width: '0',
-        videoId: song?.youtubeId || '',
-        playerVars: {
-          autoplay: 0,
-          controls: 0,
-          disablekb: 1,
-          enablejsapi: 1,
-          fs: 0,
-          iv_load_policy: 3,
-          modestbranding: 1,
-          playsinline: 1,
-          rel: 0
-        },
-        events: {
-          onReady: (event: any) => {
-            event.target.setVolume(volume * 100);
-            onReady?.();
-          },
-          onStateChange: (event: any) => {
-            onStateChange?.(event.data);
-          },
-          onError: (event: any) => {
-            onError?.(event.data);
-          }
-        }
-      });
-    }
-  };
-
-  useEffect(() => {
-    if (playerRef.current && song) {
-      playerRef.current.loadVideoById(song.youtubeId);
-    }
-  }, [song]);
-
-  useEffect(() => {
-    if (playerRef.current) {
-      if (isPlaying) {
-        playerRef.current.playVideo();
-      } else {
-        playerRef.current.pauseVideo();
-      }
-    }
-  }, [isPlaying]);
-
-  useEffect(() => {
-    if (playerRef.current) {
-      playerRef.current.setVolume(volume * 100);
-    }
-  }, [volume]);
-
-  return <div ref={containerRef} style={{ display: 'none' }} />;
-};
+);
 
 export default YouTubePlayer;
+

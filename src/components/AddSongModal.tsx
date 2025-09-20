@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { X, Plus, Music } from 'lucide-react';
 import { Song } from '@/types/music';
+import { validateYouTubeUrl, sanitizeText, validateAlbumCoverUrl, rateLimiter } from '@/utils/security';
 
 interface AddSongModalProps {
   isOpen: boolean;
@@ -23,37 +24,67 @@ const AddSongModal: React.FC<AddSongModalProps> = ({ isOpen, onClose, onAddSong 
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!youtubeUrl || !title || !artist) return;
+    
+    // Rate limiting check
+    if (!rateLimiter.canPerformOperation()) {
+      alert('Too many requests. Please wait a moment before adding another song.');
+      return;
+    }
+    
+    // Sanitize inputs
+    const sanitizedTitle = sanitizeText(title, 100);
+    const sanitizedArtist = sanitizeText(artist, 100);
+    const sanitizedAlbum = sanitizeText(album, 100);
+    
+    if (!youtubeUrl || !sanitizedTitle || !sanitizedArtist) {
+      alert('Please fill in all required fields.');
+      return;
+    }
 
     setIsLoading(true);
     
-    const youtubeId = extractYouTubeId(youtubeUrl);
-    if (!youtubeId) {
+    // Enhanced YouTube URL validation
+    const validation = validateYouTubeUrl(youtubeUrl);
+    if (!validation.isValid || !validation.videoId) {
       alert('Please enter a valid YouTube URL');
       setIsLoading(false);
       return;
     }
 
-    // Create new song
+    // Validate album cover URL
+    const albumCoverUrl = `https://img.youtube.com/vi/${validation.videoId}/maxresdefault.jpg`;
+    if (!validateAlbumCoverUrl(albumCoverUrl)) {
+      alert('Invalid album cover source');
+      setIsLoading(false);
+      return;
+    }
+
+    // Create new song with sanitized data
     const newSong: Song = {
-      id: Date.now().toString(),
-      title,
-      artist,
-      album: album || undefined,
-      youtubeId,
-      albumCover: `https://img.youtube.com/vi/${youtubeId}/maxresdefault.jpg`,
+      id: `song_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`, // More secure ID
+      title: sanitizedTitle,
+      artist: sanitizedArtist,
+      album: sanitizedAlbum || undefined,
+      youtubeId: validation.videoId,
+      albumCover: albumCoverUrl,
       addedAt: new Date()
     };
 
-    onAddSong(newSong);
-    
-    // Reset form
-    setYoutubeUrl('');
-    setTitle('');
-    setArtist('');
-    setAlbum('');
-    setIsLoading(false);
-    onClose();
+    try {
+      onAddSong(newSong);
+      
+      // Reset form
+      setYoutubeUrl('');
+      setTitle('');
+      setArtist('');
+      setAlbum('');
+      setIsLoading(false);
+      onClose();
+    } catch (error) {
+      console.error('Error adding song:', error);
+      alert('Failed to add song. Please try again.');
+      setIsLoading(false);
+    }
   };
 
   if (!isOpen) return null;
