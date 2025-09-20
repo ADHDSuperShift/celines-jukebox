@@ -6,8 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Celine's Retro Jukebox</title>
     <meta name="description" content="Experience a classic jukebox feel with modern enhancements, featuring a vinyl-themed UI and YouTube integration." />
-    <link rel="icon" type="image/svg+xml" href="/placeholder.svg" />
-    <link rel="manifest" href="/manifest.json" />
+    <link rel="icon" type="image/svg+xml" href="/celines-jukebox/placeholder.svg" />
+    <link rel="manifest" href="/celines-jukebox/manifest.json" />
     <meta name="theme-color" content="#ec4899" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -16,6 +16,20 @@
     
     <!-- Google Cast SDK -->
     <script type="text/javascript" src="https://www.gstatic.com/cv/js/sender/v1/cast_sender.js?loadCastFramework=1"></script>
+    
+    <!-- GitHub Pages SPA Router -->
+    <script>
+      (function(l) {
+        if (l.search[1] === '/' ) {
+          var decoded = l.search.slice(1).split('&').map(function(s) { 
+            return s.replace(/~and~/g, '&')
+          }).join('?');
+          window.history.replaceState(null, null,
+              l.pathname.slice(0, -1) + decoded + l.hash
+          );
+        }
+      }(window.location))
+    </script>
 
     <meta property="og:title" content="Celine's Retro Jukebox" />
     <meta property="og:description" content="Experience a classic jukebox feel with modern enhancements, featuring a vinyl-themed UI and YouTube integration." />
@@ -24,8 +38,8 @@
 
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:image" content="/og.jpg" />
-    <script type="module" crossorigin src="/assets/index-D4kJhmIn.js"></script>
-    <link rel="stylesheet" crossorigin href="/assets/index-B1HAEyaK.css">
+    <script type="module" crossorigin src="/celines-jukebox/assets/index-D4kJhmIn.js"></script>
+    <link rel="stylesheet" crossorigin href="/celines-jukebox/assets/index-B1HAEyaK.css">
   </head>
 
   <body>
