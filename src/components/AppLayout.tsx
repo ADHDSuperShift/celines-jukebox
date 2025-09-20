@@ -1,7 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useJukebox } from '@/hooks/useJukebox';
-import { useSpotify } from '@/hooks/useSpotify';
+import { useYouTubePlayer } from '@/hooks/useYouTubePlayer';
 import { useCast } from '@/hooks/useCast';
+import YouTubePlayer, { YouTubePlayerHandle } from './YouTubePlayer';
 import JukeboxHeader from './JukeboxHeader';
 import NowPlaying from './NowPlaying';
 import VinylGrid from './VinylGrid';
@@ -18,20 +19,18 @@ const AppLayout: React.FC = () => {
   } = useJukebox();
 
   const {
-    isAuthenticated,
-    isPlayerReady,
-    currentTrack,
-    isPlaying: spotifyIsPlaying,
-    isInitializing,
-    login,
-    logout,
-    playTrack,
-    pause,
-    resume
-  } = useSpotify();
+    currentSong,
+    isPlaying: youtubeIsPlaying,
+    volume,
+    playSong: playYouTubeSong,
+    togglePlay: toggleYouTubePlay,
+    handleVolumeChange
+  } = useYouTubePlayer();
 
   const [showAddModal, setShowAddModal] = useState(false);
   const { isConnected, castCurrentSong, playCast, pauseCast } = useCast();
+  const youtubePlayerRef = useRef<YouTubePlayerHandle>(null);
+  const [userInteracted, setUserInteracted] = useState(false);
 
   const handleTogglePlay = () => {
     if (isConnected) {
@@ -41,41 +40,35 @@ const AppLayout: React.FC = () => {
       } else {
         playCast();
       }
-    } else if (isAuthenticated) {
-      // Control Spotify player
-      if (spotifyIsPlaying) {
-        pause();
-      } else {
-        resume();
-      }
+    } else {
+      // Control YouTube player
+      youtubePlayerRef.current?.play();
     }
     togglePlay();
+  };
+
+  const enableAudio = () => {
+    setUserInteracted(true);
   };
 
   const handlePlaySong = (song: any) => {
     console.log("Playing song:", song.title);
     
-    // Try Spotify first, fallback to YouTube
-    if (isAuthenticated && song.spotifyId) {
-      const startSpotifyPlayback = async () => {
-        playSong(song);
-        try {
-          const success = await playTrack(`spotify:track:${song.spotifyId}`);
-          if (!success) {
-            console.error('Failed to play track on Spotify, falling back to YouTube');
-            // Could fallback to YouTube here
-          }
-        } catch (error) {
-          console.error('Error playing track:', error);
-        }
-      };
-      startSpotifyPlayback();
-    } else {
-      // Fallback: Alert user to setup Spotify or use YouTube
-      alert('Please login to Spotify first, or YouTube integration coming soon!');
+    if (!userInteracted) {
+      alert('Please click anywhere to enable audio playback');
+      return;
     }
     
-    // If connected, also cast the visualization
+    // Play with YouTube
+    playSong(song);
+    playYouTubeSong(song);
+    
+    // Use YouTube player reference to control playback
+    setTimeout(() => {
+      youtubePlayerRef.current?.play();
+    }, 1000);
+    
+    // If connected, also cast the song
     if (isConnected && song.youtubeId) {
       castCurrentSong(song.youtubeId, song.title, song.artist, song.albumCover);
     }
@@ -110,29 +103,20 @@ const AppLayout: React.FC = () => {
     console.log('Toggle repeat');
   };
 
-  const handleVolumeChange = (volume: number) => {
-    // Volume change functionality would be implemented here
-    console.log('Volume changed to:', volume);
-  };
-
   const handlePrevious = () => {
     // Previous song functionality would be implemented here
     console.log('Previous song');
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900">
-      {/* Spotify Authentication Banner */}
-      {!isAuthenticated && (
-        <div className="bg-green-600 text-white p-4 text-center">
-          <p className="mb-2">Connect to Spotify to play music</p>
-          <button
-            onClick={login}
-            className="bg-green-800 hover:bg-green-700 px-6 py-2 rounded-lg font-semibold transition-colors"
-            disabled={isInitializing}
-          >
-            {isInitializing ? 'Connecting...' : 'Login to Spotify'}
-          </button>
+    <div 
+      className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900"
+      onClick={enableAudio}
+    >
+      {/* User Interaction Banner */}
+      {!userInteracted && (
+        <div className="bg-blue-600 text-white p-4 text-center">
+          <p className="mb-2">Click anywhere to enable audio playback</p>
         </div>
       )}
 
@@ -141,9 +125,20 @@ const AppLayout: React.FC = () => {
         onAddSong={() => setShowAddModal(true)}
         onCast={handleCast}
         isConnected={isConnected}
-        spotifyAuthenticated={isAuthenticated}
-        onSpotifyLogout={logout}
+        spotifyAuthenticated={false}
+        onSpotifyLogout={() => {}}
       />
+
+      {/* YouTube Player (hidden) */}
+      {playerState.currentSong && (
+        <YouTubePlayer
+          ref={youtubePlayerRef}
+          videoId={playerState.currentSong.youtubeId}
+          onEnded={nextSong}
+          onReady={() => console.log('YouTube player ready')}
+          onPlay={() => console.log('YouTube playing')}
+        />
+      )}
 
       {/* Now Playing Section */}
       <div className="px-6 py-8">
