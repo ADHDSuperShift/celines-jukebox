@@ -63,14 +63,9 @@ const AppLayout: React.FC = () => {
       return;
     }
     
-    // Play with YouTube
+    // Set the song in jukebox state
     playSong(song);
     playYouTubeSong(song);
-    
-    // Use YouTube player reference to control playback
-    setTimeout(() => {
-      youtubePlayerRef.current?.play();
-    }, 1000);
     
     // If connected, also cast the song
     if (isConnected && song.youtubeId) {
@@ -136,6 +131,7 @@ const AppLayout: React.FC = () => {
       {/* YouTube Player (hidden) */}
       {playerState.currentSong && (
         <YouTubePlayer
+          key={playerState.currentSong.youtubeId}
           ref={youtubePlayerRef}
           videoId={playerState.currentSong.youtubeId}
           onEnded={nextSong}

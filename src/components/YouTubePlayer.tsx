@@ -76,7 +76,11 @@ const YouTubePlayer = forwardRef<YouTubePlayerHandle, Props>(
           onReady={(e) => {
             playerRef.current = e.target;
             isReadyRef.current = true;
-            console.log('YouTube player fully ready');
+            console.log('YouTube player fully ready, starting playback');
+            // Auto-start playback when ready
+            setTimeout(() => {
+              e.target.playVideo();
+            }, 500);
             onReady?.(e);
           }}
           onStateChange={(e) => {
