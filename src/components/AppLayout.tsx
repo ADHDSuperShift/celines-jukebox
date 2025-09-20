@@ -34,6 +34,7 @@ const AppLayout: React.FC = () => {
   const [showTapToPlay, setShowTapToPlay] = useState(false);
   const [pendingSong, setPendingSong] = useState<any>(null);
   const [playerReady, setPlayerReady] = useState(false);
+  const prevVideoIdRef = useRef<string | null>(null);
 
   const handleTogglePlay = () => {
     if (isConnected) {
@@ -116,6 +117,8 @@ const AppLayout: React.FC = () => {
     if (pendingSong && youtubePlayerRef.current) {
       console.log('User tapped to play:', pendingSong.title);
       youtubePlayerRef.current.play();
+      // small safety retry
+      setTimeout(() => youtubePlayerRef.current?.play(), 250);
       setShowTapToPlay(false);
       setPendingSong(null);
     }
@@ -156,21 +159,27 @@ const AppLayout: React.FC = () => {
   };
 
   useEffect(() => {
-    if (!playerState.currentSong) return;
-    const song = playerState.currentSong;
+    const currentId = playerState.currentSong?.youtubeId || null;
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    if (!currentId) return;
 
-    // Reset readiness for new song
-    setPlayerReady(false);
+    // If the video id didn't change (user tapped vinyl again), don't reset readiness
+    const sameVideo = prevVideoIdRef.current === currentId;
+    prevVideoIdRef.current = currentId;
 
     if (isMobile) {
-      // Show overlay and wait for onReady -> enable button
-      setPendingSong(song);
+      if (!sameVideo) {
+        setPlayerReady(false);
+        setPendingSong(playerState.currentSong!);
+      }
       setShowTapToPlay(true);
+
+      // If player is already ready (e.g., we just played), enable the button immediately
+      const readyNow = !!youtubePlayerRef.current?.getPlayer();
+      if (readyNow) setPlayerReady(true);
     } else {
-      // Desktop: try to play when player becomes ready; we also try a few times
+      if (!sameVideo) setPlayerReady(false);
       const tryPlay = () => youtubePlayerRef.current?.play();
-      // kick a few attempts in case init lags
       setTimeout(tryPlay, 200);
       setTimeout(tryPlay, 700);
       setTimeout(tryPlay, 1500);
