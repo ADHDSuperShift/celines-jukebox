@@ -33,6 +33,7 @@ const AppLayout: React.FC = () => {
   const [userInteracted, setUserInteracted] = useState(false);
   const [showTapToPlay, setShowTapToPlay] = useState(false);
   const [pendingSong, setPendingSong] = useState<any>(null);
+  const [playerReady, setPlayerReady] = useState(false);
 
   const handleTogglePlay = () => {
     if (isConnected) {
@@ -82,7 +83,7 @@ const AppLayout: React.FC = () => {
     if (isMobile) {
       setPendingSong(song);
       setShowTapToPlay(true);
-      // Set the song in jukebox state but don't play yet
+      setPlayerReady(false); // reset until player is ready
       playSong(song);
       playYouTubeSong(song);
       return;
@@ -91,6 +92,19 @@ const AppLayout: React.FC = () => {
     // Desktop: play immediately
     playSong(song);
     playYouTubeSong(song);
+    
+    // Trigger YouTube player to play on desktop with multiple attempts
+    const tryPlay = () => {
+      if (youtubePlayerRef.current) {
+        youtubePlayerRef.current.play();
+        console.log('Desktop autoplay attempt');
+      }
+    };
+    
+    // Try immediately, then after 500ms, then after 1.5s
+    tryPlay();
+    setTimeout(tryPlay, 500);
+    setTimeout(tryPlay, 1500);
     
     // If connected, also cast the song
     if (isConnected && song.youtubeId) {
@@ -169,7 +183,10 @@ const AppLayout: React.FC = () => {
           ref={youtubePlayerRef}
           videoId={playerState.currentSong.youtubeId}
           onEnded={nextSong}
-          onReady={() => console.log('YouTube player ready')}
+          onReady={() => {
+            console.log('YouTube player ready');
+            setPlayerReady(true);
+          }}
           onPlay={() => console.log('YouTube playing')}
         />
       )}
@@ -185,9 +202,10 @@ const AppLayout: React.FC = () => {
             </p>
             <button
               onClick={handleTapToPlay}
-              className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-lg text-lg transition-colors"
+              disabled={!playerReady}
+              className={`font-bold py-3 px-8 rounded-lg text-lg transition-colors ${playerReady ? 'bg-blue-600 hover:bg-blue-700 text-white' : 'bg-gray-300 text-gray-500 cursor-not-allowed'}`}
             >
-              ▶️ Play Now
+              {playerReady ? '▶️ Play Now' : 'Loading player…'}
             </button>
           </div>
         </div>

@@ -36,10 +36,14 @@ const YouTubePlayer = forwardRef<YouTubePlayerHandle, Props>(
 
     useImperativeHandle(ref, () => ({
       play: () => {
+        console.log('YouTubePlayer.play() called, ready:', isReadyRef.current, 'player exists:', !!playerRef.current);
         if (playerRef.current && isReadyRef.current) {
+          console.log('Calling playVideo()');
           playerRef.current.playVideo();
           // Double-check after a short delay
           setTimeout(ensurePlay, 500);
+        } else {
+          console.log('Player not ready, cannot play');
         }
       },
       pause: () => playerRef.current?.pauseVideo(),
