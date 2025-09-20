@@ -8,13 +8,13 @@ export const useSpotify = () => {
   const [currentTrack, setCurrentTrack] = useState<any>(null);
   const [isPlaying, setIsPlaying] = useState(false);
 
-  // Spotify app credentials (you'll need to register your app)
+  // Spotify app credentials
   const CLIENT_ID = import.meta.env.VITE_SPOTIFY_CLIENT_ID || 'your_spotify_client_id';
-  const REDIRECT_URI = window.location.origin + window.location.pathname;
+  
+  // Use GitHub Pages for Spotify since it requires HTTPS
+  const REDIRECT_URI = 'https://adhdshupershift.github.io/celines-jukebox/';
+    
   const SCOPES = 'streaming user-read-email user-read-private user-read-playback-state user-modify-playback-state';
-
-  console.log('Current location:', window.location.href);
-  console.log('Redirect URI will be:', REDIRECT_URI);
 
   useEffect(() => {
     // Check if we have an access token in URL (after OAuth redirect)
@@ -61,14 +61,13 @@ export const useSpotify = () => {
     window.location.href = authUrl;
   };
 
-  const login = connectSpotify; // Alias for easier naming
-  const logout = disconnect; // Alias for easier naming
+  const login = connectSpotify;
+  const logout = disconnect;
 
   const playTrack = async (spotifyUri: string): Promise<boolean> => {
     const success = await spotifyService.playTrack(spotifyUri);
     if (success) {
       setIsPlaying(true);
-      // You could also get track info here
     }
     return success;
   };
@@ -86,8 +85,8 @@ export const useSpotify = () => {
   return {
     isConnected,
     isInitializing,
-    isAuthenticated: isConnected, // Alias
-    isPlayerReady: isConnected, // For now, same as connected
+    isAuthenticated: isConnected,
+    isPlayerReady: isConnected,
     currentTrack,
     isPlaying,
     connectSpotify,
